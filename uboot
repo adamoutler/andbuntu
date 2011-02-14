@@ -17,9 +17,18 @@
 
 
 #Generate a ubuntu.img file on Ubuntu with the following commands:
+
 # cd ~/Desktop
 # sudo apt-get install rootstock
-# sudo root
+# sudo rootstock --dist maverick --seed lxde,tightvncserver,openoffice.org,gimp,ssh, -fqdn localhost --login ubuntu --password ubuntu --imagesize 3800M --notarball --fullname "Ubuntu for Android" --kbmodel pc104  --locale en_US.UTF-8 --serial ttyS0  --doswap --swapsize 256M 
+
+#This will generate a *************.img file.  Rename this file "ubuntu.img".
+#Copy this script and your new ubuntu.img file to your android's /sdcard/ubuntu/ folder
+#Open any Terminal Emulator and execute this script with the following command:
+
+# cd /sdcard/ubuntu
+# su
+# sh uboot
 
 
 
