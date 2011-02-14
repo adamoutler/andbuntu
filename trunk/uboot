@@ -31,7 +31,7 @@ Dependency="chroot"
 if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
 Dependency="sysctl"
 if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
-Dependency="umouasfnt"
+Dependency="umount"
 if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
 if [ "$MissingDeps" != "" ]; then
   echo "*********WARNING**********"

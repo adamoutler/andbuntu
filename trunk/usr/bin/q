@@ -1,2 +1,0 @@
-X=`ps 2>&1 |awk '{print $1}' |tr -d PID`
-kill $X
