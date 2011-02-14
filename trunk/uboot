@@ -1,0 +1,177 @@
+#! $SHELL
+
+clear
+helpfulExit (){
+ echo "The command executed failed.  please search for this
+command on Google.  If that fails, try www.UbuntuForums.org."
+ exit
+}
+
+echo "Setting up environmental variables."
+export UbuntuLoopFS=/sdcard/ubuntu/ubuntu.img
+export UbuntuMountPoint=/data/local/mnt
+export PATH=/system/bin:/usr/bin:/usr/sbin:/bin:$PATH
+export TERM=linux
+export HOME=/root
+export USER=root
+echo "Environment is: $SHELL"
+Dependency=""
+echo "Verifying dependencies..."
+Dependency="mount"
+if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
+Dependency="mknod"
+if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
+Dependency="rm"
+if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
+Dependency="expr"
+if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
+Dependency="grep"
+if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
+Dependency="chroot"
+if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
+Dependency="sysctl"
+if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
+Dependency="umouasfnt"
+if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
+if [ "$MissingDeps" != "" ]; then
+  echo "*********WARNING**********"
+  echo "MISSING DEPENDENCIES FOUND"
+  echo "THE MISSING DEPENDENCIES.."
+  echo "$MissingDeps"
+  echo "*********WARNING**********"
+fi
+
+
+echo "mounting new root filesystem... "
+mount -o remount,rw -t ext4 rootfs /
+if [ $? != 0 ]; then
+  echo "    Failure...  
+*****ERROR*****
+command failed
+    mount -o remount,rw -t ext4 rootfs /
+Attemted to mount a new root filesystem as EXT4 and failed.
+Your system must be Android 2.2 compatible and support EXT4 filesystems"
+  echo "trying again.. "
+  test ! -s /system/lib && ln -s /lib /system/lib
+  mount -o remount,rw -t ext4 rootfs /
+  test $? = 0 && echo Sucessful || echo failed && helpfulExit
+fi
+
+echo "verifying link at /lib to /system/lib"
+test ! -s /system/lib && echo Linking. &&ln -s /lib /system/lib
+
+
+echo "Attempting to remount /system dir as RW... "
+mount -o remount,rw -t ext4 /dev/block/mtdblock3 /system
+if [ $? != 0 ]; then
+  echo "    failed...  
+*****ERROR*****
+command was 
+  mount -o remount,rw -t ext4 /dev/block/mtdblock3 /system
+Your system must be Android 2.2 compatible and support EXT4 filesystems."
+  helpfulExit
+fi
+
+
+
+echo "Removing preexisting loopfs devices."
+rm /dev/loop* 2>&1 >/dev/null
+
+x=2
+while [ -e /dev/loop$x ]; 
+do
+  x=`expr $x + 1`
+done
+mknod /dev/loop$x b 7 0
+
+echo "Checking for interference mount points"
+existingMounts=`mount |grep "$UbuntuMountPoint/dev/pts"|awk '{print $3}'`
+if [ "$existingMounts" != "" ]; then
+  umount  "$UbuntuMountPoint/dev/pts"
+  umount  "$UbuntuMountPoint/proc"
+  umount  "$UbuntuMountPoint/sys"
+  umount  "$UbuntuMountPoint"
+fi
+
+
+echo "Mounting $UbuntuLoopFS at $UbuntuMountPoint as EXT4 Filesystem"
+mount -o loop,noatime -t ext4 $UbuntuLoopFS $UbuntuMountPoint
+if [ -e $UbuntuMountPoint/etc ]; then
+  echo "Mounted $UbuntuLoopFS as EXT4 loopFS at $UbuntuMountPoint/ubuntu.img"
+else
+  echo "Error in mounting $UbuntuLoopFS as loop EXT4 filesystem
+the command executed was
+    mount -o loop,noatime -t ext4 $UbuntuLoopFS $UbuntuMountPoint "
+  helpfulExit
+fi
+
+
+echo "Mounting $UbuntuMountPoint/dev/pts"
+mount -t devpts devpts "$UbuntuMountPoint/dev/pts"
+test $? != 0 && echo "Failed mounting $UbuntuMountPoint/dev/pts as devpts filesystem type"
+echo "Mounting $UbuntuMountPoint/dev/proc"
+mount -t proc proc "$UbuntuMountPoint/proc"
+test $? != 0 && echo "Failed mounting $UbuntuMountPoint/proc as proc filesystem type"
+echo "Mounting $UbuntuMountPoint/dev/proc"
+mount -t sysfs sysfs "$UbuntuMountPoint/sys"
+test $? != 0 && echo "Failed mounting $UbuntuMountPoint/sys as sysfs filesystem type"
+
+echo "Setting up network forward..."
+sysctl -w net.ipv4.ip_forward=1
+
+
+echo "checking /etc/resolv.conf s.."
+if ! grep "nameserver 8.8.8.8" "$UbuntuMountPoint/etc/resolv.conf" 2>&1 >/dev/null ; then
+  echo "adding nameserver 8.8.8.8"
+  echo "nameserver 8.8.8.8" > "$UbuntuMountPoint/etc/resolv.conf"
+fi
+if ! grep "nameserver 8.8.4.4" "$UbuntuMountPoint/etc/resolv.conf"  2>&1 >/dev/null ; then
+  echo "adding nameserver 8.8.4.4"
+  echo "nameserver 8.8.4.4" >> "$UbuntuMountPoint/etc/resolv.conf"
+fi
+
+
+echo "checking localhost entries in /etc/hosts and $UbuntuMountPoint/etc/hosts"
+if ! grep '127.0.0.1 localhost' /etc/hosts 2>&1 >/dev/null ; then
+  echo '127.0.0.1 localhost' > /etc/hosts
+  echo 'Adding localhost to /etc/hosts'
+fi
+if ! grep '127.0.0.1 localhost' "$UbuntuMountPoint/etc/hosts" 2>&1 >/dev/null ; then
+  echo '127.0.0.1 localhost'>"$UbuntuMountPoint/etc/hosts"
+  echo 'Adding localhost to $UbuntuMountPoint/etc/hosts'
+fi
+
+
+if [ -e "$UbuntuMountPoint/bin/bash" ]; then
+  echo "Clearing $UbuntuMountPoint/tmp.."
+  rm -Rf "$UbuntuMountPoint/tmp"
+  mkdir "$UbuntuMountPoint/tmp"
+  echo "#! /bin/bash"
+  echo 'X=`ps 2>&1 |awk '"'"'{print $1}'"'"' |tr -d PID `'>$UbuntuMountPoint/usr/bin/q
+  echo 'echo $X'>>$UbuntuMountPoint/usr/bin/q
+  echo "kill \$X">>$UbuntuMountPoint/usr/bin/q
+  chmod 777 $UbuntuMountPoint/usr/bin/q
+
+
+  echo "Ubuntu is ready! Chrooting terminal into Ubuntu distribution."
+  echo "type 'q' to quit"
+
+
+
+  chroot "$UbuntuMountPoint" "/bin/bash"
+else 
+  echo "Failed... Bash is not mounted at $UbuntuMountPoint/bin/bash"
+  echo "the command executed was
+    chroot $UbuntuMountPoint /bin/bash"
+  helpfulExit
+fi
+#After exit command is executed clear it all up
+echo " "
+
+echo "Shutting down Ubuntu"
+umount $UbuntuMountPoint/dev/pts
+umount $UbuntuMountPoint/proc 
+umount $UbuntuMountPoint/sys 
+umount $UbuntuMountPoint
+#losetup -d /dev/loop2
+
