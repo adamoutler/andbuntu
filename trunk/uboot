@@ -1,4 +1,27 @@
 #! $SHELL
+#AndBuntu 
+#Android 2.2 Ubuntu launcher
+#Copyright 2011 Adam Outler
+#
+#   Licensed under the Apache License, Version 2.0 (the "License");
+#   you may not use this file except in compliance with the License.
+#   You may obtain a copy of the License at
+#
+#       http://www.apache.org/licenses/LICENSE-2.0
+#
+#   Unless required by applicable law or agreed to in writing, software
+#   distributed under the License is distributed on an "AS IS" BASIS,
+#   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#   See the License for the specific language governing permissions and
+#   limitations under the License.
+
+
+#Generate a ubuntu.img file on Ubuntu with the following commands:
+# cd ~/Desktop
+# sudo apt-get install rootstock
+# sudo root
+
+
 
 clear
 helpfulExit (){
@@ -42,10 +65,11 @@ if [ "$MissingDeps" != "" ]; then
 fi
 
 
-echo "mounting new root filesystem... "
+echo "Remounting root filesystem as rewritable"
 mount -o remount,rw -t ext4 rootfs /
 if [ $? != 0 ]; then
-  echo "    Failure...  
+  echo "    Failure...
+YOU MUST BE ROOT!  
 *****ERROR*****
 command failed
     mount -o remount,rw -t ext4 rootfs /
@@ -54,7 +78,14 @@ Your system must be Android 2.2 compatible and support EXT4 filesystems"
   echo "trying again.. "
   test ! -s /system/lib && ln -s /lib /system/lib
   mount -o remount,rw -t ext4 rootfs /
-  test $? = 0 && echo Sucessful || echo failed && helpfulExit
+  if [ $? = 0 ]; then
+    echo "Sucessful"
+  else 
+    echo "FAILED. YOU MUST BE ROOT."
+    echo "Type 'su' first to attain root access"
+    echo "The command run was:
+    mount -o remount,rw -t ext4 rootfs /"
+    helpfulExit
 fi
 
 echo "verifying link at /lib to /system/lib"
