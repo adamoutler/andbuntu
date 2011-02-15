@@ -95,6 +95,7 @@ Your system must be Android 2.2 compatible and support EXT4 filesystems"
     echo "The command run was:
     mount -o remount,rw -t ext4 rootfs /"
     helpfulExit
+  fi
 fi
 
 echo "verifying link at /lib to /system/lib"
