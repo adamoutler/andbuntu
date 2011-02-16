@@ -187,7 +187,7 @@ fi
 
 if [ -e "$UbuntuMountPoint/bin/bash" ]; then
   echo "Clearing $UbuntuMountPoint/tmp.."
-  rm -Rf "$UbuntuMountPoint/tmp"
+  rm -R "$UbuntuMountPoint/tmp"
   mkdir "$UbuntuMountPoint/tmp"
   echo "#! /bin/bash"
   echo 'X=`ps 2>&1 |awk '"'"'{print $1}'"'"' |tr -d PID `'>$UbuntuMountPoint/usr/bin/q
