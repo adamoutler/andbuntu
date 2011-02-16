@@ -46,6 +46,7 @@ export PATH=/system/bin:/usr/bin:/usr/sbin:/bin:$PATH
 export TERM=linux
 export HOME=/root
 export USER=root
+test "$SHELL" = "" && export SHELL="sh"
 echo "Environment is: $SHELL"
 Dependency=""
 echo "Verifying dependencies..."
@@ -123,6 +124,7 @@ while [ -e /dev/loop$x ];
 do
   x=`expr $x + 1`
 done
+losetup -d /dev/loop$x
 mknod /dev/loop$x b 7 0
 
 echo "Checking for interference mount points"
