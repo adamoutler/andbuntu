@@ -41,7 +41,7 @@ command on Google.  If that fails, try www.UbuntuForums.org."
 
 echo "Setting up environmental variables."
 export UbuntuLoopFS=/sdcard/ubuntu/ubuntu.img
-export UbuntuMountPoint=/data/local/mnt
+export UbuntuMountPoint=/mnt/ubuntu
 export PATH=/system/bin:/usr/bin:/usr/sbin:/bin:$PATH
 export TERM=linux
 export HOME=/root
@@ -187,6 +187,7 @@ fi
 if [ ! -e "$UbuntuMountPoint" ]; then
   mkdir $UbuntuMountPoint
 fi
+
 if [ -e "$UbuntuMountPoint/bin/bash" ]; then
   echo "Clearing $UbuntuMountPoint/tmp.."
   rm -r "$UbuntuMountPoint/tmp"
