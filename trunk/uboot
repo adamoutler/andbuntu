@@ -187,13 +187,15 @@ fi
 
 if [ -e "$UbuntuMountPoint/bin/bash" ]; then
   echo "Clearing $UbuntuMountPoint/tmp.."
-  rm -R "$UbuntuMountPoint/tmp"
+  rm -r "$UbuntuMountPoint/tmp"
   mkdir "$UbuntuMountPoint/tmp"
   echo "#! /bin/bash"
   echo 'X=`ps 2>&1 |awk '"'"'{print $1}'"'"' |tr -d PID `'>$UbuntuMountPoint/usr/bin/q
   echo 'echo $X'>>$UbuntuMountPoint/usr/bin/q
   echo "kill \$X">>$UbuntuMountPoint/usr/bin/q
   chmod 777 $UbuntuMountPoint/usr/bin/q
+
+
 
 
   echo "Ubuntu is ready! Chrooting terminal into Ubuntu distribution."
@@ -216,5 +218,4 @@ umount $UbuntuMountPoint/dev/pts
 umount $UbuntuMountPoint/proc 
 umount $UbuntuMountPoint/sys 
 umount $UbuntuMountPoint
-#losetup -d /dev/loop2
 
