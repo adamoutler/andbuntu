@@ -184,7 +184,9 @@ if ! grep '127.0.0.1 localhost' "$UbuntuMountPoint/etc/hosts" 2>&1 >/dev/null ; 
   echo 'Adding localhost to $UbuntuMountPoint/etc/hosts'
 fi
 
-
+if [ ! -e "$UbuntuMountPoint" ]; then
+  mkdir $UbuntuMountPoint
+fi
 if [ -e "$UbuntuMountPoint/bin/bash" ]; then
   echo "Clearing $UbuntuMountPoint/tmp.."
   rm -r "$UbuntuMountPoint/tmp"
