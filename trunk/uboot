@@ -124,9 +124,9 @@ while [ -e /dev/loop$x ];
 do
   x=`expr $x + 1`
 done
-losetup -d /dev/loop$x
-mknod /dev/loop$x b 7 0
 
+mknod /dev/loop$x b 7 0
+losetup -d /dev/loop$x
 echo "Checking for interference mount points"
 existingMounts=`mount |grep "$UbuntuMountPoint/dev/pts"|awk '{print $3}'`
 if [ "$existingMounts" != "" ]; then
@@ -189,6 +189,8 @@ if [ -e "$UbuntuMountPoint/bin/bash" ]; then
   echo "Clearing $UbuntuMountPoint/tmp.."
   rm -r "$UbuntuMountPoint/tmp"
   mkdir "$UbuntuMountPoint/tmp"
+
+#generate quit script
   echo "#! /bin/bash">$UbuntuMountPoint/usr/bin/q
   echo 'X=`ps 2>&1 |awk '"'"'{print $1}'"'"' |tr -d PID `'>>$UbuntuMountPoint/usr/bin/q
   echo 'echo $X'>>$UbuntuMountPoint/usr/bin/q
@@ -196,12 +198,12 @@ if [ -e "$UbuntuMountPoint/bin/bash" ]; then
   chmod 777 $UbuntuMountPoint/usr/bin/q
 
 
-  echo "#! /bin/bash">$UbuntuMountPoint>$UbuntuMountPoint/usr/bin/firstRun
-
+#generate helper script to fix things
+  echo "#! /bin/bash">"$UbuntuMountPoint/usr/bin/firstRun"
   echo 'rm /dev/ptmx
 mknod --mode 666 /dev/ptmx c 5 2
-/bin/dbus-uuidgen --ensure'>>$UbuntuMountPoint/usr/bin/firstRun
-  chmod 777 $UbuntuMountPoint/usr/bin/firstRun
+/bin/dbus-uuidgen --ensure'>>"$UbuntuMountPoint/usr/bin/firstRun"
+  chmod 777 "$UbuntuMountPoint/usr/bin/firstRun"
   
 
 
