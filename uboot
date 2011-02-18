@@ -125,6 +125,11 @@ do
   x=`expr $x + 1`
 done
 
+
+if [ ! -e "$UbuntuMountPoint" ]; then
+  mkdir $UbuntuMountPoint
+fi
+
 mknod /dev/loop$x b 7 0
 losetup -d /dev/loop$x
 echo "Checking for interference mount points"
@@ -184,9 +189,7 @@ if ! grep '127.0.0.1 localhost' "$UbuntuMountPoint/etc/hosts" 2>&1 >/dev/null ; 
   echo 'Adding localhost to $UbuntuMountPoint/etc/hosts'
 fi
 
-if [ ! -e "$UbuntuMountPoint" ]; then
-  mkdir $UbuntuMountPoint
-fi
+
 
 if [ -e "$UbuntuMountPoint/bin/bash" ]; then
   echo "Clearing $UbuntuMountPoint/tmp.."
