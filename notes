@@ -1,0 +1,3 @@
+folder not found = missing mount point
+Block device required = 
+ioctl LOOP_SET_FD failed: Device or resource busy = 
