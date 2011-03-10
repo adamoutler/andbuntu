@@ -41,7 +41,7 @@ command on Google.  If that fails, try www.UbuntuForums.org."
 
 echo "Setting up environmental variables."
 export UbuntuLoopFS=/sdcard/ubuntu/ubuntu.img
-export UbuntuMountPoint=/mnt/ubuntu
+export UbuntuMountPoint=/data/local/mnt
 export PATH=/system/bin:/usr/bin:/usr/sbin:/bin:$PATH
 export TERM=linux
 export HOME=/root
@@ -55,6 +55,8 @@ if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; 
 Dependency="mknod"
 if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
 Dependency="rm"
+if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
+Dependency="ln"
 if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
 Dependency="expr"
 if ! which $Dependency >/dev/null; then MissingDeps="$MissingDeps $Dependency"; fi
@@ -99,8 +101,7 @@ Your system must be Android 2.2 compatible and support EXT4 filesystems"
   fi
 fi
 
-echo "verifying link at /lib to /system/lib"
-test ! -s /system/lib && echo Linking. &&ln -s /lib /system/lib
+
 
 
 echo "Attempting to remount /system dir as RW... "
@@ -117,21 +118,23 @@ fi
 
 
 echo "Removing preexisting loopfs devices."
-rm /dev/loop* 2>&1 >/dev/null
+#rm /dev/loop* 2>&1 >/dev/null
 
-x=2
-while [ -e /dev/loop$x ]; 
-do
-  x=`expr $x + 1`
-done
+FreeLoop=`losetup -f`
+x=${FreeLoop#${FreeLoop%?}}
+echo "setting up $FreeLoop"
+test ! -e "$FreeLoop" && mknod "$FreeLoop" b 7 "$x"
 
 
-if [ ! -e "$UbuntuMountPoint" ]; then
-  mkdir $UbuntuMountPoint
-fi
+FreeLoop=`losetup -f`
+x=${FreeLoop#${FreeLoop%?}}
+echo "setting up $FreeLoop"
+test ! -e "$FreeLoop" && mknod "$FreeLoop" b 7 "$x"
 
-mknod /dev/loop$x b 7 0
-losetup -d /dev/loop$x
+x=1
+FreeLoop=/dev/loop1
+#losetup $FreeLoop /sdcard/ubuntu/ubuntu.img
+
 echo "Checking for interference mount points"
 existingMounts=`mount |grep "$UbuntuMountPoint/dev/pts"|awk '{print $3}'`
 if [ "$existingMounts" != "" ]; then
@@ -141,6 +144,8 @@ if [ "$existingMounts" != "" ]; then
   umount  "$UbuntuMountPoint"
 fi
 
+test ! -e "$UbuntuMountPoint" && mkdir "$UbuntuMountPoint"
+
 
 echo "Mounting $UbuntuLoopFS at $UbuntuMountPoint as EXT4 Filesystem"
 mount -o loop,noatime -t ext4 $UbuntuLoopFS $UbuntuMountPoint
@@ -149,7 +154,9 @@ if [ -e $UbuntuMountPoint/etc ]; then
 else
   echo "Error in mounting $UbuntuLoopFS as loop EXT4 filesystem
 the command executed was
-    mount -o loop,noatime -t ext4 $UbuntuLoopFS $UbuntuMountPoint "
+    mount -o loop,noatime -t ext4 $UbuntuLoopFS $UbuntuMountPoint
+  The filesystem may have been of the wrong type.  Check to make sure $UbuntuMountPoint falls within the following filesystems:"
+  mount |grep ext4|sed s/\(.*// 
   helpfulExit
 fi
 
@@ -190,6 +197,7 @@ if ! grep '127.0.0.1 localhost' "$UbuntuMountPoint/etc/hosts" 2>&1 >/dev/null ; 
 fi
 
 
+test ! -h /lib && rm -r /lib && ln -s /system/lib /lib
 
 if [ -e "$UbuntuMountPoint/bin/bash" ]; then
   echo "Clearing $UbuntuMountPoint/tmp.."
