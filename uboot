@@ -89,11 +89,6 @@ Attemted to mount a new root filesystem as EXT4 and failed.
 Your system must be Android 2.2 compatible and support EXT4 filesystems"
   echo "trying again.. "
 
-  if [ ! -h /system/lib ]; then
-    cp -r /lib /system/lib 
-    rm -r /lib 
-    ln -s /system/lib /lib
-  fi 
 
   mount -o remount,rw -t ext4 rootfs /
   if [ $? = 0 ]; then
